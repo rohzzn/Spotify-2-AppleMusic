@@ -1,6 +1,6 @@
 from sys import argv
 import csv
-import urllib.parse, urllib.request
+import urllib.parse
 import json
 from time import sleep
 import requests
@@ -14,12 +14,12 @@ else:
     exit()
 
 # Function to get contents of file if it exists
-def get_connection_data(f,prompt):
+def get_connection_data(f, prompt):
     if os.path.exists(f):
-        with open(f,'r') as file:
+        with open(f, 'r') as file:
             return file.read().rstrip('\n')
     else:
-            return input(prompt)
+        return input(prompt)
 
 def create_apple_music_playlist(session, playlist_name):
     url = "https://amp-api.music.apple.com/v1/me/library/playlists"
@@ -48,8 +48,6 @@ def create_apple_music_playlist(session, playlist_name):
 token = get_connection_data("token.dat", "\nPlease enter your Apple Music Authorization (Bearer token):\n")
 media_user_token = get_connection_data("media_user_token.dat", "\nPlease enter your media user token:\n")
 cookies = get_connection_data("cookies.dat", "\nPlease enter your cookies:\n")
-
-# playlist_identifier = input("\nPlease enter the playlist identifier:\n")
 
 # function to escape apostrophes
 def escape_apostrophes(s):
@@ -84,7 +82,7 @@ def get_itunes_id(title, artist, album):
                     response = urllib.request.urlopen(request)
                     data = json.loads(response.read().decode('utf-8'))
     except:
-        return print("An error occured with the request.")
+        return print("An error occurred with the request.")
     
     # Try to match the song with the results
     try:
@@ -128,7 +126,7 @@ def add_song_to_playlist(session, song_id, playlist_id, playlist_name):
     try:   
         request = session.post(f"https://amp-api.music.apple.com/v1/me/library/playlists/{playlist_id}/tracks", json={"data":[{"id":f"{song_id}","type":"songs"}]})
         # Checking if the request is successful
-        if requests.codes.ok:
+        if request.status_code == 201:
             print(f"Song {song_id} added to playlist {playlist_name}!")
             return True
         # If not, print the error code
@@ -159,17 +157,7 @@ def create_playlist_and_add_song(file):
     with requests.Session() as s:
         s.headers.update({"Authorization": f"{token}",
                     "media-user-token": f"{media_user_token}",
-                    "Cookie": f"{cookies}".encode('utf-8'),
-                    "Host": "amp-api.music.apple.com",
-                    "Accept-Encoding":"gzip, deflate, br",
-                    "Referer": "https://music.apple.com/",
-                    "Origin": "https://music.apple.com",
-                    "Content-Length": "45",
-                    "Connection": "keep-alive",
-                    "Sec-Fetch-Dest": "empty",
-                    "Sec-Fetch-Mode": "cors",
-                    "Sec-Fetch-Site": "same-site",
-                    "TE": "trailers"})
+                    "Cookie": f"{cookies}"})
     
     # Getting the playlist name
     playlist_name = os.path.basename(file)
@@ -181,7 +169,7 @@ def create_playlist_and_add_song(file):
 
     playlist_track_ids = get_playlist_track_ids(s, playlist_identifier)
     print(playlist_track_ids)
-    # Opening the inputed CSV file
+    # Opening the inputted CSV file
     with open(str(file), encoding='utf-8') as file:
         file = csv.reader(file)
         next(file)
@@ -234,6 +222,6 @@ if __name__ == "__main__":
                 if ".csv" in file:
                     create_playlist_and_add_song(os.path.join(argv[1], file))
 
-# Developped by @therealmarius on GitHub
+# Developed by @therealmarius on GitHub
 # Based on the work of @simonschellaert on GitHub
 # Github project page: https://github.com/therealmarius/Spotify-2-AppleMusic
